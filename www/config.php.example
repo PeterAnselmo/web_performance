@@ -1,0 +1,7 @@
+<?php
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'web_perf_db');
+define('DB_USER', 'web_perf_user');
+define('DB_PASS', 'webperfpass');
+
+define('DEBUGGING',false);
