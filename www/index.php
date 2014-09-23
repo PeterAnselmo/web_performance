@@ -24,22 +24,36 @@ $result = $dbh->query('select * from users');
                 }
             }
             jQuery(document).ready(function(){
-                performance.mark("task1");
-                var foo;
-                for(var i=0; i<1000; i++){
-                    foo += 1;
-                }
-                performance.mark("endtask2");
-
-                measurePerf();
 
                 var now = new Date().getTime();
                 var num_rows = $('div#num_rows').data('num-rows');
-                var page_load_time= now - performance.timing.navigationStart;
 
+                console.log('navigationStart: ' + (performance.timing.navigationStart - performance.timing.navigationStart));
+                console.log('unloadEventStart: ' + (performance.timing.unloadEventStart - performance.timing.navigationStart));
+                console.log('unloadEventEnd: ' + (performance.timing.unloadEventEnd - performance.timing.navigationStart));
+                console.log('redirectStart: ' + (performance.timing.redirectStart - performance.timing.navigationStart));
+                console.log('redirectEnd: ' + (performance.timing.redirectEnd - performance.timing.navigationStart));
+                console.log('fetchStart: ' + (performance.timing.fetchStart - performance.timing.navigationStart));
+                console.log('domainLookupStart: ' + (performance.timing.domainLookupStart - performance.timing.navigationStart));
+                console.log('domainLookupEnd: ' + (performance.timing.domainLookupEnd - performance.timing.navigationStart));
+                console.log('connectStart: ' + (performance.timing.connectStart - performance.timing.navigationStart));
+                console.log('connectEnd: ' + (performance.timing.connectEnd - performance.timing.navigationStart));
+                console.log('secureConnectionStart: ' + (performance.timing.secureConnectionStart - performance.timing.navigationStart));
+                console.log('requestStart: ' + (performance.timing.requestStart - performance.timing.navigationStart));
+                console.log('responseStart: ' + (performance.timing.responseStart - performance.timing.navigationStart));
+                console.log('responseEnd: ' + (performance.timing.responseEnd - performance.timing.navigationStart));
+                console.log('domLoading: ' + (performance.timing.domLoading - performance.timing.navigationStart));
+                console.log('domInteractive: ' + (performance.timing.domInteractive - performance.timing.navigationStart));
+                console.log('domContentLoadedEventStart: ' + (performance.timing.domContentLoadedEventStart - performance.timing.navigationStart));
+                console.log('domContentLoadedEventEnd: ' + (performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart));
+                console.log('domComplete: ' + (performance.timing.domComplete - performance.timing.navigationStart));
+                console.log('loadEventStart: ' + (performance.timing.loadEventStart - performance.timing.navigationStart));
+                console.log('loadEventEnd: ' + (performance.timing.loadEventEnd - performance.timing.navigationStart));
+
+                var total_load_time= now - performance.timing.navigationStart;
                 $.post('log_time.php',
                     {'size':num_rows,
-                    'time':page_load_time},
+                    'time':total_load_time},
                     function(){}
                 );
 

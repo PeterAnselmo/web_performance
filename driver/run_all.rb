@@ -1,14 +1,48 @@
 require 'selenium-webdriver'
+require 'mysql'
+require 'yaml'
 
-driver = Selenium::WebDriver.for :chrome
-driver.manage.timeouts.page_load = 300 # 5 minutes
+CONFIG = YAML::load_file('config.yml')
 
-10.times do
-    3.times do
-        driver.navigate.to 'http://localhost/perf_standards/www/'
-    end
-
-    driver.navigate.to 'http://localhost/perf_standards/www/add_rows.php'
+$chars = [('a'..'z'),('A'..'Z')].map{|i| i.to_a}.flatten
+def rand_str(length)
+    (0..length).map{ $chars[rand($chars.length)] }.join
 end
 
-driver.quit
+$dbh = Mysql.new CONFIG['host'], CONFIG['user'], CONFIG['pass'], CONFIG['database']
+def clear_rows
+    sql = "DELETE FROM users"
+    result = $dbh.query(sql);
+end
+
+def add_row
+    sql ="INSERT INTO users(username, fname, lname) VALUES ('#{rand_str(7)}', '#{rand_str(5)}', '#{rand_str(8)}')"
+    result = $dbh.query(sql)
+end
+
+def double_rows
+    sql = "SELECT COUNT(*) as num_rows FROM users"
+    result = $dbh.query(sql);
+    num_rows = result.fetch_row[0].to_i
+    1.upto(num_rows) do
+        add_row
+    end
+end
+
+def run_benchmarks
+    driver = Selenium::WebDriver.for :chrome
+    driver.manage.timeouts.page_load = 300 # 5 minutes
+    18.times do
+        double_rows
+
+        3.times do
+            driver.navigate.to 'http://localhost/web_performance/www/'
+        end
+    end
+    driver.quit
+end
+
+clear_rows
+add_row
+
+run_benchmarks
