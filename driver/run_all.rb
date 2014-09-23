@@ -32,17 +32,16 @@ end
 def run_benchmarks
     driver = Selenium::WebDriver.for :chrome
     driver.manage.timeouts.page_load = 300 # 5 minutes
-    18.times do
-        double_rows
-
-        3.times do
-            driver.navigate.to 'http://localhost/web_performance/www/'
+    100.times do
+        1000.times do
+            add_row
         end
+
+        driver.navigate.to 'http://localhost/web_performance/www/'
     end
     driver.quit
 end
 
 clear_rows
-add_row
 
 run_benchmarks
