@@ -52,29 +52,78 @@ $result = $dbh->query('select * from users');
 
                 var total_load_time= now - performance.timing.navigationStart;
                 $.post('log_time.php',
-                    {'size':num_rows,
+                    {'type':'<?php echo $_GET['type'] ?>',
+                    'size':num_rows,
                     'time':total_load_time},
                     function(){}
                 );
 
             });
         </script>
-<table>
-    <tr>
-        <th>Username</th>
-        <th>First Name</th>
-        <th>Last Name</th>
-    </tr>
-<?php $num_rows = 0 ?>
-<?php while($row = mysqli_fetch_assoc($result)){ ?>
-<?php ++$num_rows ?>
-    <tr>
-        <td><?php echo $row['username'] ?></td>
-        <td><?php echo $row['fname'] ?></td>
-        <td><?php echo $row['lname'] ?></td>
-    </tr>
+<?php if($_GET['type'] == 'list'){ ?>
+    <ul>
+        <li>username,fname,lname</li>
+    <?php $num_rows = 0 ?>
+    <?php while($row = mysqli_fetch_assoc($result)){ ?>
+    <?php ++$num_rows ?>
+        <li><?php echo $row['username'] ?> <?php echo $row['fname'] ?> <?php echo $row['lname'] ?></li> 
+    <?php } ?>
+    </ul>
+<?php } else if($_GET['type'] == 'checkbox'){ ?>
+    <form>
+    <?php $num_rows = 0 ?>
+    <?php while($row = mysqli_fetch_assoc($result)){ ?>
+    <?php ++$num_rows ?>
+        <input type="checkbox" name="foo" value="<?php echo $row['username']?>" /><?php echo $row['fname'] ?> <?php echo $row['lname'] ?><br />
+    <?php } ?>
+    </form>
+
+<?php } else if($_GET['type'] == 'dropdown'){ ?>
+    <form>
+    <select name="foo">
+    <?php $num_rows = 0 ?>
+    <?php while($row = mysqli_fetch_assoc($result)){ ?>
+    <?php ++$num_rows ?>
+        <option value="<?php echo $row['username']?>"><?php echo $row['fname'] ?> <?php echo $row['lname'] ?></option>
+    <?php } ?>
+    </select>
+    </form>
+
+<?php } else if($_GET['type'] == 'fixed-table'){ ?>
+    <table>
+        <tr>
+            <th style="width: 200px;">Username</th>
+            <th style="width: 200px;">First Name</th>
+            <th style="width: 200px;">Last Name</th>
+        </tr>
+    <?php $num_rows = 0 ?>
+    <?php while($row = mysqli_fetch_assoc($result)){ ?>
+    <?php ++$num_rows ?>
+        <tr>
+            <td><?php echo $row['username'] ?></td>
+            <td><?php echo $row['fname'] ?></td>
+            <td><?php echo $row['lname'] ?></td>
+        </tr>
+    <?php } ?>
+    </table>
+<?php } else { ?>
+    <table>
+        <tr>
+            <th>Username</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+        </tr>
+    <?php $num_rows = 0 ?>
+    <?php while($row = mysqli_fetch_assoc($result)){ ?>
+    <?php ++$num_rows ?>
+        <tr>
+            <td><?php echo $row['username'] ?></td>
+            <td><?php echo $row['fname'] ?></td>
+            <td><?php echo $row['lname'] ?></td>
+        </tr>
+    <?php } ?>
+    </table>
 <?php } ?>
-</table>
 <div id="num_rows" data-num-rows="<?php echo $num_rows ?>"></div>
     </body>
 </html>

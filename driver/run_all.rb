@@ -3,6 +3,10 @@ require 'mysql'
 require 'yaml'
 
 CONFIG = YAML::load_file('config.yml')
+EXP_ROWS = 17
+NUM_REPS = 3
+RESULTS_FILE = 'results.txt'
+MARKUP_TYPES = ['table','fixed-table','list','checkbox','dropdown']
 
 $chars = [('a'..'z'),('A'..'Z')].map{|i| i.to_a}.flatten
 def rand_str(length)
@@ -14,6 +18,9 @@ $dbh = Mysql.new CONFIG['host'], CONFIG['user'], CONFIG['pass'], CONFIG['databas
 def clear_log
     web_log = CONFIG['www_path'] + 'log_time.txt'
     `echo '' > #{web_log}`
+    `echo '' > #{RESULTS_FILE}`
+    sql = "DELETE FROM results"
+    result = $dbh.query(sql)
 end
 
 def clear_rows
@@ -43,16 +50,39 @@ def run_benchmarks
     driver.manage.timeouts.page_load = 300 # 5 minutes
 
     add_rows
-    driver.navigate.to 'http://localhost/web_performance/www/'
+    MARKUP_TYPES.each do |type|
+        NUM_REPS.times do
+            driver.navigate.to "http://localhost/web_performance/www/index.php?type=#{type}"
+        end
+    end
 
-    18.times do
+    EXP_ROWS.times do
         double_rows
-        driver.navigate.to 'http://localhost/web_performance/www/'
+        MARKUP_TYPES.each do |type|
+            NUM_REPS.times do
+                driver.navigate.to "http://localhost/web_performance/www/index.php?type=#{type}"
+            end
+        end
     end
     driver.quit
 end
+
+def dump_results
+    sql = "SELECT type, num_rows, MIN(render_time) as render_time
+           FROM results
+           GROUP BY type, num_rows"
+    result = $dbh.query(sql)
+    fh = File.open(RESULTS_FILE,'w')
+    result.each_hash do |row|
+        fh.puts [row['type'], row['num_rows'].to_s, row['render_time'].to_s].join("\t")
+    end
+    fh.close
+end
+
 
 clear_log
 clear_rows
 
 run_benchmarks
+
+dump_results

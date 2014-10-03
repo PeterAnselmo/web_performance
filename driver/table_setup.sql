@@ -4,3 +4,9 @@ CREATE TABLE users (
     fname VARCHAR(255) NOT NULL,
     lname VARCHAR(255) NOT NULL
 );
+
+CREATE TABLE results (
+    type VARCHAR(255) NOT NULL,
+    num_rows INT UNSIGNED,
+    render_time INT UNSIGNED
+);

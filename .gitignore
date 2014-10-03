@@ -2,3 +2,4 @@
 www/config.php
 www/log_time.txt
 driver/config.yml
+driver/results.txt

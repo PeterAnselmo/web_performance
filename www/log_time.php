@@ -1,5 +1,14 @@
 <?php
+require 'config.php';
+require 'Database.php';
+$dbh = Database::getInstance();
 
-file_put_contents('log_time.txt', "{$_POST['size']}\t{$_POST['time']}\n", FILE_APPEND | LOCK_EX);
+$query = "INSERT INTO results (type, num_rows, render_time) 
+          VALUES ('{$_POST['type']}', {$_POST['size']}, {$_POST['time']})";
+
+$dbh->query($query);
+
+//echo mysqli_error($dbh);
+//file_put_contents('log_time.txt', "{$_POST['type']}\t{$_POST['size']}\t{$_POST['time']}\n", FILE_APPEND | LOCK_EX);
 
 ?>
