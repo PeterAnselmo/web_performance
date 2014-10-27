@@ -11,6 +11,10 @@ $result = $dbh->query('select * from users');
     <head>
         <title>Web Performance Testing</title>
         <script type="text/javascript" src="jquery-2.1.1.min.js"></script>
+        <?php if($_GET['type'] == 'autocomplete'){ ?>
+            <script type="text/javascript" src="jquery-ui.min.js"></script>
+            <link rel="stylesheet" type="text/css" href="jquery-ui.theme.min.css" />
+        <?php } ?>
         <script>
             function measurePerf(){
                 var perfEntries = performance.getEntriesByType('mark');
@@ -53,8 +57,11 @@ $result = $dbh->query('select * from users');
                 var total_load_time= now - performance.timing.navigationStart;
                 $.post('log_time.php',
                     {'type':'<?php echo $_GET['type'] ?>',
-                    'size':num_rows,
-                    'time':total_load_time},
+                    'num_rows':num_rows,
+                    'page_size':$('html').html().length / 1024,
+                    'request_start':performance.timing.requestStart - performance.timing.navigationStart,
+                    'response_end':performance.timing.responseEnd - performance.timing.requestStart,
+                    'time':performance.timing.domContentLoadedEventStart - performance.timing.responseEnd},
                     function(){}
                 );
 
@@ -62,11 +69,11 @@ $result = $dbh->query('select * from users');
         </script>
 <?php if($_GET['type'] == 'list'){ ?>
     <ul>
-        <li>username,fname,lname</li>
+        <li>U:username, F:fname, L:lname</li>
     <?php $num_rows = 0 ?>
     <?php while($row = mysqli_fetch_assoc($result)){ ?>
     <?php ++$num_rows ?>
-        <li><?php echo $row['username'] ?> <?php echo $row['fname'] ?> <?php echo $row['lname'] ?></li> 
+        <li>U:<?php echo $row['username'] ?>, F:<?php echo $row['fname'] ?>, L:<?php echo $row['lname'] ?></li> 
     <?php } ?>
     </ul>
 <?php } else if($_GET['type'] == 'checkbox'){ ?>
@@ -84,7 +91,7 @@ $result = $dbh->query('select * from users');
     <?php $num_rows = 0 ?>
     <?php while($row = mysqli_fetch_assoc($result)){ ?>
     <?php ++$num_rows ?>
-        <option value="<?php echo $row['username']?>"><?php echo $row['fname'] ?> <?php echo $row['lname'] ?></option>
+        <option value="<?php echo $row['username']?>">F:<?php echo $row['fname'] ?> L:<?php echo $row['lname'] ?></option>
     <?php } ?>
     </select>
     </form>
@@ -106,6 +113,24 @@ $result = $dbh->query('select * from users');
         </tr>
     <?php } ?>
     </table>
+<?php } else if($_GET['type'] == 'autocomplete') { ?>
+    <input type="text" name="foo" />
+    <script type="text/javascript">
+    var options = [
+<?php while($row = mysqli_fetch_assoc($result)){ ?>
+<?php ++$num_rows ?>
+<?php echo "'{$row['username']}{$row['fname']}{$row['lname']}'," ?>
+<?php } ?>
+        'asdf'];
+
+    jQuery(document).ready(function($){
+        $('input[name=foo]').autocomplete({
+            source:options
+        });
+    });
+
+    </script>
+
 <?php } else { ?>
     <table>
         <tr>

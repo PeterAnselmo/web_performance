@@ -6,7 +6,7 @@ CONFIG = YAML::load_file('config.yml')
 EXP_ROWS = 17
 NUM_REPS = 3
 RESULTS_FILE = 'results.txt'
-MARKUP_TYPES = ['table','fixed-table','list','checkbox','dropdown']
+MARKUP_TYPES = ['table','fixed-table','list','checkbox','dropdown','autocomplete']
 
 $chars = [('a'..'z'),('A'..'Z')].map{|i| i.to_a}.flatten
 def rand_str(length)
@@ -58,8 +58,8 @@ def run_benchmarks
 
     EXP_ROWS.times do
         double_rows
-        MARKUP_TYPES.each do |type|
-            NUM_REPS.times do
+        NUM_REPS.times do
+            MARKUP_TYPES.each do |type|
                 driver.navigate.to "http://localhost/web_performance/www/index.php?type=#{type}"
             end
         end
@@ -68,13 +68,26 @@ def run_benchmarks
 end
 
 def dump_results
-    sql = "SELECT type, num_rows, MIN(render_time) as render_time
+    sql = "SELECT type, num_rows, MIN(page_size) as page_size,
+                                  MIN(request_start) as request_start,
+                                  MIN(response_end) as response_end,
+                                  MIN(render_time) as render_time
            FROM results
            GROUP BY type, num_rows"
     result = $dbh.query(sql)
     fh = File.open(RESULTS_FILE,'w')
+    fh.puts ['Element',
+             'Num Rows',
+             'Page Size',
+             'Response Time',
+             'Render Time'].join("\t")
+
     result.each_hash do |row|
-        fh.puts [row['type'], row['num_rows'].to_s, row['render_time'].to_s].join("\t")
+        fh.puts [row['type'],
+                 row['num_rows'].to_s,
+                 row['page_size'].to_s,
+                 row['response_end'].to_s,
+                 row['render_time'].to_s].join("\t")
     end
     fh.close
 end

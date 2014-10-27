@@ -8,5 +8,8 @@ CREATE TABLE users (
 CREATE TABLE results (
     type VARCHAR(255) NOT NULL,
     num_rows INT UNSIGNED,
+    page_size INT UNSIGNED,
+    request_start INT UNSIGNED,
+    response_end INT UNSIGNED,
     render_time INT UNSIGNED
 );

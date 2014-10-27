@@ -3,8 +3,8 @@ require 'config.php';
 require 'Database.php';
 $dbh = Database::getInstance();
 
-$query = "INSERT INTO results (type, num_rows, render_time) 
-          VALUES ('{$_POST['type']}', {$_POST['size']}, {$_POST['time']})";
+$query = "INSERT INTO results (type, num_rows, page_size, request_start, response_end, render_time) 
+          VALUES ('{$_POST['type']}', {$_POST['num_rows']}, ceil({$_POST['page_size']}), {$_POST['request_start']}, {$_POST['response_end']}, {$_POST['time']})";
 
 $dbh->query($query);
 
