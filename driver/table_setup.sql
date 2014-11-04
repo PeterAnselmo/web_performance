@@ -13,3 +13,5 @@ CREATE TABLE results (
     response_end INT UNSIGNED,
     render_time INT UNSIGNED
 );
+
+create index username_idx on users(username)

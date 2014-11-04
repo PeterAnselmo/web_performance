@@ -45,6 +45,12 @@ def double_rows
     add_rows(num_rows)
 end
 
+def get_last_name
+    sql = "SELECT username FROM users LIMIT 1"
+    result = $dbh.query(sql);
+    return result.fetch_row[0]
+end
+
 def run_benchmarks
     driver = Selenium::WebDriver.for :chrome
     driver.manage.timeouts.page_load = 300 # 5 minutes
@@ -62,6 +68,34 @@ def run_benchmarks
             MARKUP_TYPES.each do |type|
                 driver.navigate.to "http://localhost/web_performance/www/index.php?type=#{type}"
             end
+        end
+    end
+    driver.quit
+end
+
+def run_autocomplete_benchmarks
+    driver = Selenium::WebDriver.for :chrome
+    wait = Selenium::WebDriver::Wait.new(:timeout => 10)
+    driver.manage.timeouts.page_load = 300 # 5 minutes
+
+    add_rows
+    EXP_ROWS.times do
+        double_rows
+        MARKUP_TYPES.each do |type|
+            driver.navigate.to "http://localhost/web_performance/www/index.php?type=autocomplete"
+
+            driver.navigate.to "http://localhost/web_performance/www/index.php?type=autocomplete-ajax"
+            textbox = nil
+            wait.until{ textbox = driver.find_element(:class, 'ui-autocomplete-input') }
+            start_time = Time.now
+            textbox.send_keys get_last_name
+            option = nil
+            wait.until{ option = driver.find_element(:class, 'ui-menu-item') }
+            end_time = Time.now
+            diff = end_time - start_time
+            puts diff * 1000
+            textbox.send_keys(:arrow_down)
+            textbox.send_keys(:enter)
         end
     end
     driver.quit

@@ -11,7 +11,7 @@ $result = $dbh->query('select * from users');
     <head>
         <title>Web Performance Testing</title>
         <script type="text/javascript" src="jquery-2.1.1.min.js"></script>
-        <?php if($_GET['type'] == 'autocomplete'){ ?>
+        <?php if($_GET['type'] == 'autocomplete' || $_GET['type'] == 'autocomplete-ajax'){ ?>
             <script type="text/javascript" src="jquery-ui.min.js"></script>
             <link rel="stylesheet" type="text/css" href="jquery-ui.theme.min.css" />
         <?php } ?>
@@ -126,6 +126,18 @@ $result = $dbh->query('select * from users');
     jQuery(document).ready(function($){
         $('input[name=foo]').autocomplete({
             source:options
+        });
+    });
+
+    </script>
+<?php } else if($_GET['type'] == 'autocomplete-ajax') { ?>
+    <input type="text" name="foo" />
+    <script type="text/javascript">
+
+    jQuery(document).ready(function($){
+        $('input[name=foo]').autocomplete({
+            source: "search.php",
+            minLength: 3,
         });
     });
 
