@@ -1,5 +1,7 @@
 <?php
-require 'config.php';
+require 'spyc.php';
+$CONFIG = Spyc::YAMLLoad('../config.yml');
+define('DEBUGGING', $CONFIG['debug']);
 require 'Database.php';
 
 $dbh = Database::getInstance();
@@ -58,7 +60,7 @@ $result = $dbh->query('select * from users');
                 $.post('log_time.php',
                     {'type':'<?php echo $_GET['type'] ?>',
                     'num_rows':num_rows,
-                    'page_size':$('html').html().length / 1024,
+                    'page_size':$('html').html().length,
                     'request_start':performance.timing.requestStart - performance.timing.navigationStart,
                     'response_end':performance.timing.responseEnd - performance.timing.requestStart,
                     'time':performance.timing.domContentLoadedEventStart - performance.timing.responseEnd},

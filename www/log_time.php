@@ -1,5 +1,7 @@
 <?php
-require 'config.php';
+require 'spyc.php';
+$CONFIG = Spyc::YAMLLoad('../config.yml');
+define('DEBUGGING', $CONFIG['debug']);
 require 'Database.php';
 $dbh = Database::getInstance();
 

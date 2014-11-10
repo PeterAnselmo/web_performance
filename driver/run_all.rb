@@ -2,9 +2,10 @@ require 'selenium-webdriver'
 require 'mysql'
 require 'yaml'
 
-CONFIG = YAML::load_file('config.yml')
-EXP_ROWS = 17
-NUM_REPS = 3
+CONFIG = YAML::load_file('../config.yml')
+EXP_SIZE = 10
+EXP_ROWS = 14
+NUM_REPS = 1
 RESULTS_FILE = 'results.txt'
 MARKUP_TYPES = ['table','fixed-table','list','checkbox','dropdown','autocomplete']
 
@@ -28,21 +29,21 @@ def clear_rows
     result = $dbh.query(sql);
 end
 
-def add_rows(num_rows=1)
+def add_rows(num_rows=1, field_size = 1)
     sql ="INSERT INTO users(username, fname, lname) VALUES "
     1.upto(num_rows) do
-        sql += " ('#{rand_str(7)}', '#{rand_str(5)}', '#{rand_str(8)}'),"
+        sql += " ('#{rand_str(field_size)}', '#{rand_str(field_size)}', '#{rand_str(field_size)}'),"
     end
     sql = sql[0..-2]
     result = $dbh.query(sql)
     #result = `mysql -u #{CONFIG['user']} -p#{CONFIG['pass']} #{CONFIG['database']} -e "#{sql}"`
 end
 
-def double_rows
+def double_rows(field_size = 1)
     sql = "SELECT COUNT(*) as num_rows FROM users"
     result = $dbh.query(sql);
     num_rows = result.fetch_row[0].to_i
-    add_rows(num_rows)
+    add_rows(num_rows, field_size)
 end
 
 def get_last_name
@@ -55,20 +56,25 @@ def run_benchmarks
     driver = Selenium::WebDriver.for :chrome
     driver.manage.timeouts.page_load = 300 # 5 minutes
 
-    add_rows
-    MARKUP_TYPES.each do |type|
-        NUM_REPS.times do
-            driver.navigate.to "http://localhost/web_performance/www/index.php?type=#{type}"
-        end
-    end
-
-    EXP_ROWS.times do
-        double_rows
-        NUM_REPS.times do
-            MARKUP_TYPES.each do |type|
+    size = 1
+    EXP_SIZE.times do
+        clear_rows
+        add_rows(1, size)
+        MARKUP_TYPES.each do |type|
+            NUM_REPS.times do
                 driver.navigate.to "http://localhost/web_performance/www/index.php?type=#{type}"
             end
         end
+
+        EXP_ROWS.times do
+            double_rows(size+1)
+            NUM_REPS.times do
+                MARKUP_TYPES.each do |type|
+                    driver.navigate.to "http://localhost/web_performance/www/index.php?type=#{type}"
+                end
+            end
+        end
+        size *= 2
     end
     driver.quit
 end
@@ -102,12 +108,12 @@ def run_autocomplete_benchmarks
 end
 
 def dump_results
-    sql = "SELECT type, num_rows, MIN(page_size) as page_size,
-                                  MIN(request_start) as request_start,
-                                  MIN(response_end) as response_end,
-                                  MIN(render_time) as render_time
+    sql = "SELECT type, num_rows, page_size,
+                  MIN(request_start) as request_start,
+                  MIN(response_end) as response_end,
+                  MIN(render_time) as render_time
            FROM results
-           GROUP BY type, num_rows"
+           GROUP BY type, num_rows, page_size"
     result = $dbh.query(sql)
     fh = File.open(RESULTS_FILE,'w')
     fh.puts ['Element',
@@ -128,7 +134,6 @@ end
 
 
 clear_log
-clear_rows
 
 run_benchmarks
 

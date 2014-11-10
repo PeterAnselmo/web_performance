@@ -9,11 +9,6 @@
 */
 class Database {
 	
-	protected $server = DB_HOST;
-	protected $username = DB_USER;
-	protected $password = DB_PASS;
-	protected $database = DB_NAME;
-
 	protected $con;
 	protected $query_count;
 	static $instance;
@@ -23,9 +18,10 @@ class Database {
 	* 	called by itsetlf
 	*/
 	protected function __construct() {
+        global $CONFIG;
 		
 		try {
-			$this->con = mysqli_connect($this->server, $this->username, $this->password, $this->database);
+			$this->con = mysqli_connect($CONFIG['host'], $CONFIG['user'], $CONFIG['pass'], $CONFIG['database']);
 			$this->query_count = 0;
 
 			if( !$this->con ) {

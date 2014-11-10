@@ -1,5 +1,4 @@
 
-www/config.php
-www/log_time.txt
-driver/config.yml
+config.yml
 driver/results.txt
+www/log_time.txt
