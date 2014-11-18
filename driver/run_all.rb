@@ -1,3 +1,5 @@
+#!/usr/bin/ruby
+
 require 'selenium-webdriver'
 require 'mysql'
 require 'yaml'
@@ -22,6 +24,19 @@ def clear_log
     `echo '' > #{RESULTS_FILE}`
     sql = "DELETE FROM results"
     result = $dbh.query(sql)
+end
+
+def get_mem_usage
+    result = `ps -eo rss,vsize,size,args | grep chrom | sort -rh`
+    result.split("\n").first.split(" ").first
+end
+
+def log_mem_usage
+    #update last row to store current memroy usage. Totally not thread safe
+    mem_usage = get_mem_usage
+    puts mem_usage
+    sql = "update results set memory = #{mem_usage} order by id desc limit 1"
+    $dbh.query(sql)
 end
 
 def clear_rows
@@ -53,16 +68,17 @@ def get_last_name
 end
 
 def run_benchmarks
-    driver = Selenium::WebDriver.for :chrome
-    driver.manage.timeouts.page_load = 300 # 5 minutes
 
     size = 1
     EXP_SIZE.times do
+        driver = Selenium::WebDriver.for :chrome
+        driver.manage.timeouts.page_load = 300 # 5 minutes
         clear_rows
         add_rows(1, size)
         MARKUP_TYPES.each do |type|
             NUM_REPS.times do
                 driver.navigate.to "http://localhost/web_performance/www/index.php?type=#{type}"
+                log_mem_usage
             end
         end
 
@@ -71,12 +87,13 @@ def run_benchmarks
             NUM_REPS.times do
                 MARKUP_TYPES.each do |type|
                     driver.navigate.to "http://localhost/web_performance/www/index.php?type=#{type}"
+                    log_mem_usage
                 end
             end
         end
         size *= 2
+        driver.quit
     end
-    driver.quit
 end
 
 def run_autocomplete_benchmarks
@@ -111,7 +128,8 @@ def dump_results
     sql = "SELECT type, num_rows, page_size,
                   MIN(request_start) as request_start,
                   MIN(response_end) as response_end,
-                  MIN(render_time) as render_time
+                  MIN(render_time) as render_time,
+                  MIN(memory) as memory
            FROM results
            GROUP BY type, num_rows, page_size"
     result = $dbh.query(sql)
@@ -120,14 +138,16 @@ def dump_results
              'Num Rows',
              'Page Size',
              'Response Time',
-             'Render Time'].join("\t")
+             'Render Time',
+             'Memory'].join("\t")
 
     result.each_hash do |row|
         fh.puts [row['type'],
                  row['num_rows'].to_s,
                  row['page_size'].to_s,
                  row['response_end'].to_s,
-                 row['render_time'].to_s].join("\t")
+                 row['render_time'].to_s,
+                 row['memory'].to_s].join("\t")
     end
     fh.close
 end
